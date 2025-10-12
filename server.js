@@ -90,8 +90,7 @@ server.post("/add", async (req, res) => {
   }
 });
 
-
 server.listen(PORT, (err) => {
-  if (err) console.log("Error while starting server.");
+  if (err) console.error("Error while starting server, ", err);
   console.log(`App is running on http://localhost:${PORT}.`);
 });
