@@ -6,11 +6,9 @@ import ejs from "ejs";
 const server = express();
 const PORT = 3000;
 const pool = new pg.Pool({
-  user: "postgres",
-  password: "1234",
-  host: "localhost",
-  port: 5432,
-  database: "world",
+  connectionString:
+    "postgresql://akash:EqUvgC7KgR5g36w258GQCLrzBm6qlL47@dpg-d3maeql6ubrc73ekmj80-a.singapore-postgres.render.com/learningdb_qnnp",
+  ssl: { rejectUnauthorized: false },
 });
 
 server.use(bodyParser.urlencoded({ extended: true }));
@@ -26,7 +24,7 @@ async function fetchCountry() {
     });
     return countries;
   } catch (error) {
-    console.error("Error fetching visited countries:", err);
+    console.error("Error fetching visited countries:", error);
     return [];
   }
 }
