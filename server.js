@@ -4,12 +4,13 @@ import pg from "pg";
 import ejs from "ejs";
 import fs from "fs/promises";
 import path from "path";
+import dotenv from "dotenv";
+dotenv.config();
 
 const server = express();
-const PORT = 3000;
+const PORT = process.env.PORT;
 const pool = new pg.Pool({
-  connectionString:
-    "postgresql://akash:EqUvgC7KgR5g36w258GQCLrzBm6qlL47@dpg-d3maeql6ubrc73ekmj80-a.singapore-postgres.render.com/learningdb_qnnp",
+  connectionString: `${process.env.DB_URL}`,
   ssl: { rejectUnauthorized: false },
 });
 
@@ -20,15 +21,15 @@ server.set("view engine", "ejs");
 // fetch country data from visited_countries table
 async function fetchCountry() {
   try {
-    let countries = []; // Initialize an empty array which will countain all the iso-2 codes 
+    let countries = []; // Initialize an empty array which will countain all the iso-2 codes
 
     // Fetching only iso-2 code of all the countries from visited countries table
     const res = await pool.query("SELECT iso_2_code FROM visited_countries");
     res.rows.forEach((c) => {
-      countries.push(c.iso_2_code); // Pushing all the iso-2 codes into empty array 
+      countries.push(c.iso_2_code); // Pushing all the iso-2 codes into empty array
     });
 
-    return countries; // Return the array containing all the iso-2 codes 
+    return countries; // Return the array containing all the iso-2 codes
   } catch (error) {
     console.error("Error fetching visited countries:", error);
     return [];
@@ -41,7 +42,7 @@ async function cityToCountry(toSearch) {
     const filePath = path.resolve("public/cityToCountry.json"); // Constructs absolute path for jsopn file
     const fileString = await fs.readFile(filePath, "utf-8"); // Returns file content in string format
     const data = JSON.parse(fileString); // Parse string to json
-    
+
     // Filter the json searching for input string returns an object containing city and country name
     const res = data.filter(
       (obj) =>
@@ -53,7 +54,7 @@ async function cityToCountry(toSearch) {
     if (res.length > 0) {
       return res[0].country_name;
     } else {
-    // If Country / City not found throw error
+      // If Country / City not found throw error
       console.log(Array.isArray(res));
       throw new Error("No match found.");
     }
@@ -64,7 +65,7 @@ async function cityToCountry(toSearch) {
   }
 }
 
-// fetch data from one table to populate another table 
+// fetch data from one table to populate another table
 async function fetchIso(country) {
   try {
     // Fetch all the data from countries table to later populate visited_countries table
@@ -77,7 +78,7 @@ async function fetchIso(country) {
     if (result.rowCount === 0) {
       throw new Error("Cant find country.");
     }
-    return result.rows[0]; // Returns array containing country data at 0th index 
+    return result.rows[0]; // Returns array containing country data at 0th index
   } catch (error) {
     console.error("Error fetching iso code:", error);
     return []; // Returns empty array
@@ -97,7 +98,7 @@ server.get("/", async (req, res) => {
     });
   }
 
-  // If there exists countries pass them to ejs file and show them on svg with the help of country code. 
+  // If there exists countries pass them to ejs file and show them on svg with the help of country code.
   return res.render("index.ejs", {
     countries: countries,
     total: countries.length,
@@ -114,13 +115,13 @@ server.post("/add", async (req, res) => {
     // Using the country name to fetch country data, 'iso' is just placeholder name
     const iso = await fetchIso(country);
 
-    // Checking if country data already eists in visited_country table 
+    // Checking if country data already eists in visited_country table
     const exists = await pool.query(
       "SELECT * FROM visited_countries WHERE iso_2_code = $1",
       [iso.iso_2_code]
     );
 
-    // if data doesnt exists meaning visiting country for first time then populate the visited_countries table with iso 
+    // if data doesnt exists meaning visiting country for first time then populate the visited_countries table with iso
     if (exists.rowCount === 0) {
       await pool.query(
         "INSERT INTO visited_countries (country_name, iso_2_code, iso_3_code, numeric_code, iso_3166_2) VALUES ($1,$2,$3,$4,$5)",
