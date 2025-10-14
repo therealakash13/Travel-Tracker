@@ -17,6 +17,7 @@ server.use(bodyParser.urlencoded({ extended: true }));
 server.use(express.static("public"));
 server.set("view engine", "ejs");
 
+// fetch country data from visited_countries table
 async function fetchCountry() {
   try {
     let countries = []; // Initialize an empty array which will countain all the iso-2 codes 
@@ -34,6 +35,7 @@ async function fetchCountry() {
   }
 }
 
+// find and return country name form json file
 async function cityToCountry(toSearch) {
   try {
     const filePath = path.resolve("public/cityToCountry.json"); // Constructs absolute path for jsopn file
@@ -62,6 +64,7 @@ async function cityToCountry(toSearch) {
   }
 }
 
+// fetch data from one table to populate another table 
 async function fetchIso(country) {
   try {
     // Fetch all the data from countries table to later populate visited_countries table
