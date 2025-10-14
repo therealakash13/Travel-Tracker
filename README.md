@@ -42,7 +42,7 @@ npm install
 3. **Setup PostgreSQL database**
 
 * Create a database (e.g., `travel_tracker`)
-* Create tables using your CSV import or SQL scripts:
+* Create tables using your CSV import `/public/countries.csv` or SQL scripts:
 
 ```sql
 CREATE TABLE countries (
