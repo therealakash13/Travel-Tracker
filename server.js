@@ -18,18 +18,20 @@ server.use(bodyParser.urlencoded({ extended: true }));
 server.use(express.static("public"));
 server.set("view engine", "ejs");
 
+let currentUserId = 1; // Initialize current user to 1
+
 // fetch country data from visited_countries table
-async function fetchCountry() {
+async function fetchCountry(uid) {
   try {
     let countries = []; // Initialize an empty array which will countain all the iso-2 codes
 
-    // Fetching only iso-2 code of all the countries from visited countries table
-    const res = await pool.query("SELECT iso_2_code FROM visited_countries");
+    // Fetching only iso-2 code of all the countries from visited countries table of the current user
+    const res = await pool.query("SELECT iso_2_code FROM visited_countries WHERE user_id = $1",[uid]);
     res.rows.forEach((c) => {
-      countries.push(c.iso_2_code); // Pushing all the iso-2 codes into empty array
+      countries.push(c.iso_2_code); // Pushing all the iso-2 codes of current user into empty array
     });
 
-    return countries; // Return the array containing all the iso-2 codes
+    return countries; // Return the array containing all the iso-2 codes of current user
   } catch (error) {
     console.error("Error fetching visited countries:", error);
     return [];
@@ -85,16 +87,32 @@ async function fetchIso(country) {
   }
 }
 
+// Fetch all the users to show on the top
+async function fetchUsers() {
+  const result = await pool.query("SELECT * FROM users");
+  return result.rows;
+}
+
+// Fetch color of current user
+async function fetchColor(uid) {
+  const result = await pool.query('SELECT color FROM users WHERE id = $1',[uid]);
+  return result.rows[0].color  
+}
+
 server.get("/", async (req, res) => {
   // Fetching country codes by calling fetchCountry() function
-  const countries = await fetchCountry();
-
+  const countries = await fetchCountry(currentUserId);  
+  const users = await fetchUsers();
+  console.log(users);
+  const color = await fetchColor(currentUserId);
+  
   // Check if countries exists in the result
   if (countries.length === 0) {
     return res.render("index.ejs", {
       countries: countries,
       total: countries.length,
-      error: "No countries to show. Add countries!",
+      users: [],  // This is giving problem after creating user because length is 0 its not showing anything Fix it
+      color: "",
     });
   }
 
@@ -102,6 +120,8 @@ server.get("/", async (req, res) => {
   return res.render("index.ejs", {
     countries: countries,
     total: countries.length,
+    users: users,
+    color: color,
   });
 });
 
@@ -113,24 +133,25 @@ server.post("/add", async (req, res) => {
 
   try {
     // Using the country name to fetch country data, 'iso' is just placeholder name
-    const iso = await fetchIso(country);
+    const data = await fetchIso(country);
 
     // Checking if country data already eists in visited_country table
     const exists = await pool.query(
       "SELECT * FROM visited_countries WHERE iso_2_code = $1",
-      [iso.iso_2_code]
+      [data.iso_2_code]
     );
 
     // if data doesnt exists meaning visiting country for first time then populate the visited_countries table with iso
     if (exists.rowCount === 0) {
       await pool.query(
-        "INSERT INTO visited_countries (country_name, iso_2_code, iso_3_code, numeric_code, iso_3166_2) VALUES ($1,$2,$3,$4,$5)",
+        "INSERT INTO visited_countries (country_name, iso_2_code, iso_3_code, numeric_code, iso_3166_2, user_id) VALUES ($1,$2,$3,$4,$5,$6)",
         [
-          iso.country_name,
-          iso.iso_2_code,
-          iso.iso_3_code,
-          iso.numeric_code,
-          iso.iso_3166_2,
+          data.country_name,
+          data.iso_2_code,
+          data.iso_3_code,
+          data.numeric_code,
+          data.iso_3166_2,
+          currentUserId,
         ]
       );
 
@@ -141,7 +162,6 @@ server.post("/add", async (req, res) => {
       return res.render("index.ejs", {
         countries,
         total: countries.length,
-        error: "Unable to find country. Try Again!",
       });
     }
   } catch (error) {
@@ -150,9 +170,26 @@ server.post("/add", async (req, res) => {
     return res.render("index.ejs", {
       countries,
       total: countries.length,
-      error: "Database error. Try Again!",
     });
   }
+});
+
+server.post("/user", async (req, res) => {
+  if (req.body.user) {
+    currentUserId = req.body.user;
+    return res.redirect("/");
+  } else if(req.body.add){
+    return res.redirect(`/${req.body.add}`);
+  }
+});
+
+server.get('/new', (req, res)=>{
+  res.render('new.ejs')
+})
+
+server.post("/new", async (req, res) => {    
+  const userCreated = await pool.query(`INSERT INTO users (name, color) VALUES($1, $2) RETURNING *`,[req.body.name, req.body.color]);
+  return res.redirect('/');
 });
 
 server.listen(PORT, (err) => {

@@ -8,6 +8,18 @@
   </head>
 
   <body>
+    <form class="tab-view tab-view-height-auto" action="/user" method="post">
+      <% locals.users.forEach((user) => { %>
+        <input type="submit" name="user" value="<%= user.id %>" id="<%= user.id %>">
+        <label for="<%= user.id %>" style="background-color: <%= user.color %>;">
+          <%= user.name %>
+        </label>
+      <% }); %>
+
+       <input type="submit" name="add" value="new" id="tab">
+       <label for="tab">Add Family Member</label>
+    </form>
+
     <form action="/add" method="post">
       <input
         type="text"
@@ -2981,10 +2993,10 @@
     <h2 class="total-count">Total Countries: <%=total%></h2>
     <% } %>
     <script>
-      const country_codes = "<%= countries %>".split(",");
-      country_codes.forEach((code) => {
-        console.log(code);
-        document.getElementById(code).style.fill = "teal";
+      const country_codes = <%- JSON.stringify(countries) %>;
+      country_codes.forEach(code => {
+        const el = document.getElementById(code);
+        if (el) el.style.fill = "<%= color %>";
       });
     </script>
   </body>
