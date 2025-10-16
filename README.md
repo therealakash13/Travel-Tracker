@@ -56,8 +56,7 @@ CREATE TABLE countries (
     iso_2_code CHAR(2) UNIQUE,
     iso_3_code CHAR(3) UNIQUE,
     numeric_code NUMERIC(3) UNIQUE,
-    iso_3166_2 TEXT,
-    user_id INTEGER REFERENCES users(id)
+    iso_3166_2 TEXT
 );
 
 CREATE TABLE visited_countries (
@@ -65,7 +64,8 @@ CREATE TABLE visited_countries (
     iso_2_code CHAR(2) UNIQUE,
     iso_3_code CHAR(3),
     numeric_code NUMERIC(3),
-    iso_3166_2 TEXT
+    iso_3166_2 TEXT,
+    user_id INTEGER REFERENCES users(id)
 );
 ```
 
