@@ -2989,8 +2989,11 @@
       </svg> -->
     </section>
 
+    <!-- Fix no total length for initial user -->
     <% if (locals.total) { %>
-    <h2 class="total-count">Total Countries: <%=total%></h2>
+      <h2 class="total-count">Total Countries: <%=total%></h2>
+    <% } else {%>
+      <h2 class="total-count">Add Countries</h2>
     <% } %>
     <script>
       const country_codes = <%- JSON.stringify(countries) %>;
