@@ -45,12 +45,19 @@ npm install
 * Create tables using your CSV import `/public/countries.csv` or SQL scripts:
 
 ```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE,
+    color CHAR(10)
+);
+
 CREATE TABLE countries (
     country_name TEXT,
     iso_2_code CHAR(2) UNIQUE,
     iso_3_code CHAR(3) UNIQUE,
     numeric_code NUMERIC(3) UNIQUE,
-    iso_3166_2 TEXT
+    iso_3166_2 TEXT,
+    user_id INTEGER REFERENCES users(id)
 );
 
 CREATE TABLE visited_countries (
