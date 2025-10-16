@@ -5,7 +5,7 @@ import ejs from "ejs";
 import fs from "fs/promises";
 import path from "path";
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config(); // Environmnt Variable Configuration
 
 const server = express();
 const PORT = process.env.PORT;
@@ -101,17 +101,16 @@ async function fetchColor(uid) {
 
 server.get("/", async (req, res) => {
   // Fetching country codes by calling fetchCountry() function
-  const countries = await fetchCountry(currentUserId);  
-  const users = await fetchUsers();
-  console.log(users);
-  const color = await fetchColor(currentUserId);
+  const countries = await fetchCountry(currentUserId);  // Fetch visited countries of current user
+  const users = await fetchUsers();  // Fetch all the family members of current user
+  const color = await fetchColor(currentUserId);  // Fetch color pf current user
   
   // Check if countries exists in the result
   if (countries.length === 0) {
     return res.render("index.ejs", {
       countries: countries,
       total: countries.length,
-      users: [],  // This is giving problem after creating user because length is 0 its not showing anything Fix it
+      users: users,
       color: "",
     });
   }
